@@ -6,7 +6,7 @@ const app = express();
 app.use(cors());
 
 // 🔒 Optional: Secure with an auth token
-const AUTH_SECRET = process.env.AUTH_SECRET || 'my-secret-key';
+const AUTH_SECRET = process.env.AUTH_SECRET || 'sneaky-bear-42';
 
 const gateway = new braintree.BraintreeGateway({
     environment: braintree.Environment.Sandbox,
