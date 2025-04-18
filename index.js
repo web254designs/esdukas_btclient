@@ -223,17 +223,9 @@ app.use(async (err, req, res, next) => {
     res.status(500).json({ error: 'Internal server error' });
 });
 
-// 🚀 Server start (HTTPS in production)
+// 🚀 Server start
 const PORT = process.env.PORT || 3000;
-if (process.env.NODE_ENV === 'production') {
-    https.createServer({
-        key: fs.readFileSync('path_to_your_private_key.pem'),
-        cert: fs.readFileSync('path_to_your_certificate.pem'),
-    }, app).listen(PORT, () => {
-        console.log(`🚀 Braintree server running on port ${PORT} (HTTPS)`);
-    });
-} else {
-    app.listen(PORT, () => {
-        console.log(`🚀 Braintree server running on port ${PORT}`);
-    });
-}
+
+app.listen(PORT, () => {
+    console.log(`🚀 Braintree server running on port ${PORT}`);
+});
