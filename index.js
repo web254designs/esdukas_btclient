@@ -67,27 +67,6 @@ const gateway = new braintree.BraintreeGateway({
 });
 
 const { v4: uuidv4 } = require('uuid');
-const { getAuth } = require('firebase-admin/auth');
-
-// Verify Firebase token middleware
-async function verifyFirebaseToken(req, res, next) {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({ error: 'Missing or invalid Authorization header' });
-    }
-
-    const idToken = authHeader.split('Bearer ')[1];
-
-    try {
-        const decodedToken = await getAuth().verifyIdToken(idToken);
-        req.user = decodedToken; // now available for use in routes
-        next();
-    } catch (err) {
-        console.error('❌ Firebase Auth verification failed:', err);
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-}
 
 // 🎫 Get client token
 app.get('/api/braintree/token', wrapAsync(async (req, res) => {
@@ -101,7 +80,7 @@ app.get('/api/braintree/token', wrapAsync(async (req, res) => {
 }));
 
 // 💰 Checkout handler
-app.post('/api/braintree/checkout', verifyFirebaseToken, wrapAsync(async (req, res) => {
+app.post('/api/braintree/checkout', wrapAsync(async (req, res) => {
     const { nonce, amount, currency = 'USD', email, metadata = {} } = req.body;
     const authHeader = req.headers.authorization;
 
