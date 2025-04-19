@@ -90,7 +90,7 @@ async function verifyFirebaseToken(req, res, next) {
 }
 
 // 🎫 Get client token
-app.get('/api/braintree/token', verifyFirebaseToken, wrapAsync(async (req, res) => {
+app.get('/api/braintree/token', wrapAsync(async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader || authHeader !== `Bearer ${AUTH_SECRET}`) {
         return res.status(403).json({ error: 'Unauthorized' });
