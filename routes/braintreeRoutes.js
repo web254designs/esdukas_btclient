@@ -31,10 +31,11 @@ router.get('/token', checkAuth, wrapAsync(async (req, res) => {
 
 // 💳 Tokenize Card
 router.post("/tokenizeCard", async (req, res) => {
-    const { cardNumber, expiryMonth, expiryYear, cvv } = req.body;
+    const { cardNumber, expiryMonth, expiryYear, cvv, customerId } = req.body;
 
     try {
         const result = await gateway.creditCard.create({
+            customerId: customerId || `customer_${uuidv4()}`, // Use provided customerId or generate one
             number: cardNumber,
             expirationMonth: expiryMonth,
             expirationYear: expiryYear,
