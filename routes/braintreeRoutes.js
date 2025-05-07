@@ -30,19 +30,26 @@ router.get('/token', checkAuth, wrapAsync(async (req, res) => {
 }));
 
 // 💳 Tokenize Card
-router.post('/tokenizeCard', checkAuth, wrapAsync(async (req, res) => {
-    const { cardNumber, expirationDate, cvv } = req.body;
+router.post("/tokenizeCard", async (req, res) => {
+    const { cardNumber, expiryMonth, expiryYear, cvv } = req.body;
 
-    const result = await gateway.paymentMethod.create({
-        creditCard: { number: cardNumber, expirationDate, cvv }
-    });
+    try {
+        const result = await gateway.creditCard.create({
+            number: cardNumber,
+            expirationMonth: expiryMonth,
+            expirationYear: expiryYear,
+            cvv: cvv,
+        });
 
-    if (result.success) {
-        res.json({ nonce: result.paymentMethod.nonce });
-    } else {
-        res.status(400).json({ error: 'Card tokenization failed', details: result.message });
+        if (result.success) {
+            res.json({ paymentToken: result.creditCard.token });
+        } else {
+            res.status(400).json({ error: result.message });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
-}));
+});
 
 // 💰 Checkout
 router.post('/checkout', checkAuth, wrapAsync(async (req, res) => {
@@ -216,6 +223,49 @@ router.post('/paypal/checkout', checkAuth, wrapAsync(async (req, res) => {
         success: true,
         transactionId,
         status: result.transaction.status,
+    });
+}));
+
+// 🧾 PayPal - Confirm Transaction
+router.post('/paypal/confirmation', checkAuth, wrapAsync(async (req, res) => {
+    const { transactionId } = req.body;
+
+    if (!transactionId) {
+        return res.status(400).json({ error: 'Missing transactionId' });
+    }
+
+    const result = await gateway.transaction.find(transactionId);
+
+    if (!result) {
+        return res.status(404).json({ error: 'Transaction not found' });
+    }
+
+    // Optional: sync or update Firestore if needed
+    const existing = await db.collection('transactions')
+        .where('transactionId', '==', transactionId)
+        .limit(1)
+        .get();
+
+    if (existing.empty) {
+        // Could also pull email or metadata from `result.customFields` if needed
+        await db.collection('transactions').add({
+            transactionId: result.id,
+            amount: result.amount,
+            currency: result.currencyIsoCode,
+            method: result.paymentInstrumentType,
+            email: result.customer?.email || '',
+            metadata: result.customFields || {},
+            createdAt: Date.now(),
+            status: result.status,
+        });
+    }
+
+    res.json({
+        success: true,
+        transactionId: result.id,
+        status: result.status,
+        amount: result.amount,
+        currency: result.currencyIsoCode,
     });
 }));
 
