@@ -9,7 +9,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/braintree', braintreeRoutes);
+app.use('/api/', braintreeRoutes);
 
 // Global Error Handler
 app.use(handleServerError);
