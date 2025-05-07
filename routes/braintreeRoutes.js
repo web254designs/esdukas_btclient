@@ -274,6 +274,8 @@ router.post('/paypal/confirmation', checkAuth, wrapAsync(async (req, res) => {
 router.post('/paypal/vault', checkAuth, wrapAsync(async (req, res) => {
     const { nonce, customerId } = req.body;
 
+    console.log("Customer ID:", customerId);
+
     const result = await gateway.paymentMethod.create({
         customerId,
         paymentMethodNonce: nonce,
@@ -283,6 +285,7 @@ router.post('/paypal/vault', checkAuth, wrapAsync(async (req, res) => {
     });
 
     if (!result.success) {
+        console.error("Braintree Error:", result);
         return res.status(400).json({ error: result.message });
     }
 
