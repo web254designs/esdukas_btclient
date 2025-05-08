@@ -34,8 +34,19 @@ router.post("/tokenizeCard", async (req, res) => {
     const { cardNumber, expiryMonth, expiryYear, cvv, customerId } = req.body;
 
     try {
+        // Check if customer exists, or create one
+        let finalCustomerId = customerId;
+        if (!customerId) {
+            finalCustomerId = `customer_${uuidv4()}`;
+            const customerResult = await gateway.customer.create({ id: finalCustomerId });
+            if (!customerResult.success) {
+                return res.status(400).json({ error: "Failed to create customer" });
+            }
+        }
+
+        // Create the credit card
         const result = await gateway.creditCard.create({
-            customerId: customerId || `customer_${uuidv4()}`, // Use provided customerId or generate one
+            customerId: finalCustomerId,
             number: cardNumber,
             expirationMonth: expiryMonth,
             expirationYear: expiryYear,
