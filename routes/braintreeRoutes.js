@@ -14,6 +14,11 @@ const path = require('path');
 const getMerchantAccountId = (currency) =>
     merchantAccounts[currency.toUpperCase()] || merchantAccounts['USD'];
 
+// Generate a shorter customer ID
+const generateCustomerId = (uid) => {
+    return `user_${uid.substring(0, 8)}`; // Use the first 8 characters of the UID
+};
+
 // 🔐 Middleware to check Bearer token
 function checkAuth(req, res, next) {
     const authHeader = req.headers.authorization;
