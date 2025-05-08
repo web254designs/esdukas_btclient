@@ -34,6 +34,13 @@ router.get('/token', checkAuth, wrapAsync(async (req, res) => {
     res.send(response.clientToken);
 }));
 
+// 🎫 Client Token
+router.get('/pp_token', checkAuth, wrapAsync(async (req, res) => {
+    const response = await gateway.clientToken.generate({});
+    res.json({ token: response.clientToken });
+}));
+
+
 // 💳 Tokenize Card
 router.post("/tokenizeCard", async (req, res) => {
     const { cardNumber, expiryMonth, expiryYear, cvv, customerId } = req.body;
