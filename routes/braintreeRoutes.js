@@ -37,9 +37,25 @@ router.post("/tokenizeCard", async (req, res) => {
         console.log("Request received at /tokenizeCard");
         console.log("Request body:", req.body);
 
-        // Check if customer exists, or create one
         let finalCustomerId = customerId;
-        if (!customerId) {
+
+        // Check if customer exists in Braintree
+        if (customerId) {
+            try {
+                const customer = await gateway.customer.find(customerId);
+                console.log("Customer found in Braintree:", customer);
+            } catch (error) {
+                console.error("Customer not found in Braintree. Creating a new customer.");
+                finalCustomerId = `customer_${uuidv4()}`;
+                const customerResult = await gateway.customer.create({ id: finalCustomerId });
+                console.log("Customer creation result:", customerResult);
+
+                if (!customerResult.success) {
+                    return res.status(400).json({ error: "Failed to create customer" });
+                }
+            }
+        } else {
+            // Generate a new customer ID if not provided
             finalCustomerId = `customer_${uuidv4()}`;
             console.log("Generated new customerId:", finalCustomerId);
 
@@ -47,17 +63,14 @@ router.post("/tokenizeCard", async (req, res) => {
             console.log("Customer creation result:", customerResult);
 
             if (!customerResult.success) {
-                console.error("Failed to create customer:", customerResult.message);
                 return res.status(400).json({ error: "Failed to create customer" });
             }
-        } else {
-            console.log("Using provided customerId:", customerId);
         }
 
         // Create the credit card
         const result = await gateway.creditCard.create({
             customerId: finalCustomerId,
-            number: cardNumber,
+            number: cardNumber.trim(), // Trim any extra spaces or tabs
             expirationMonth: expiryMonth,
             expirationYear: expiryYear,
             cvv: cvv,
