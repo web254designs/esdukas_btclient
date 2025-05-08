@@ -46,24 +46,24 @@ router.post("/tokenizeCard", async (req, res) => {
                 console.log("Customer found in Braintree:", customer);
             } catch (error) {
                 console.error("Customer not found in Braintree. Creating a new customer.");
-                finalCustomerId = `customer_${uuidv4()}`;
+                finalCustomerId = generateCustomerId(customerId); // Generate a shorter ID
                 const customerResult = await gateway.customer.create({ id: finalCustomerId });
                 console.log("Customer creation result:", customerResult);
 
                 if (!customerResult.success) {
-                    return res.status(400).json({ error: "Failed to create customer" });
+                    return res.status(400).json({ error: customerResult.message });
                 }
             }
         } else {
             // Generate a new customer ID if not provided
-            finalCustomerId = `customer_${uuidv4()}`;
+            finalCustomerId = `customer_${uuidv4().substring(0, 8)}`; // Shortened UUID
             console.log("Generated new customerId:", finalCustomerId);
 
             const customerResult = await gateway.customer.create({ id: finalCustomerId });
             console.log("Customer creation result:", customerResult);
 
             if (!customerResult.success) {
-                return res.status(400).json({ error: "Failed to create customer" });
+                return res.status(400).json({ error: customerResult.message });
             }
         }
 
